@@ -84,6 +84,7 @@ N年(以?)(内|来)$(过去|连续|近)N年	period(-N,5,0)	period
 去年以来$自去年	period(-1,5,0)	period
 大前年	period(-3,5,3)	period
 前年	period(-2,5,3)	period
+今年	period(0,5,1)	period
 (上|去)年	period(-1,5,3)	period
 今年(以来|内)$本年度$年初至今	period(0,5,1)	period
 N年	year_period(N,0,2)	period
