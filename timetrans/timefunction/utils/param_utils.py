@@ -21,3 +21,10 @@ def get_params(func_str: str):
         return params
     else:
         return []
+
+
+def get_time_func_name(func_str: str):
+    """获取时间函数的名称
+    """
+    end = func_str.index('(')
+    return func_str[:end].strip()

@@ -54,8 +54,9 @@ def _year_month_day(year: str, month: int, day: int, mask: int):
         now += rela
     else:
         _, valid_days = calendar.monthrange(now.year, now.month)
-        if day <= valid_days:
-            rela = relativedelta(day=day)
-            now += rela
+        if day > valid_days:
+            day = valid_days
+        rela = relativedelta(day=day)
+        now += rela
             
     return now.strftime("%Y%m%d")

@@ -17,7 +17,7 @@ def month_period(func_str: str):
     
     参数说明：
     1. year：确定的年份比如2018，19；或者年份的偏移；
-    2. month：月份1~12，分别表示1月到12月
+    2. month：月份1~12，分别表示1月到12月，0表示当月
     3. year_type: 0 表示year是确定的年，1表示year是偏移；
     4. month_type: 0 表示是整个月，1表示上半月，2表示下半月
     """
@@ -49,7 +49,10 @@ def _month_period(year_str: str, month: int, year_type: int, month_type: int):
     else:
         day1 = 15
         _, day2 = calendar.monthrange(year, month)
-        
+    
+    if month == 0:
+        month = datetime.now().month
+    
     start_date = datetime(year, month, day1).strftime('%Y%m%d')
     end_date = datetime(year, month, day2).strftime('%Y%m%d')
     
