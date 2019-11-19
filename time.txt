@@ -5,6 +5,8 @@ N	n2time_day(N)	day
 下周N	week(1,N,1)	day
 N周((以|之)?)前	week(-N,0,0)	day
 N周((以|之)?)后	week(N,0,0)	day
+N/N/N	year_month_day(N,N,N,0)	day
+N-N-N	year_month_day(N,N,N,0)	day
 N年N月N(日?)	year_month_day(N,N,N,0)	day
 N年(年?)末	year_month_day(N,12,31,0)	day
 前年(年?)末	year_month_day(-2,12,31,4)	day

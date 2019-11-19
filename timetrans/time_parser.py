@@ -140,5 +140,5 @@ class TimeParser:
                 span = match.span()
                 standard_num = num_utils.cn_num_translate(match.group())
                 time_func = time_func.replace('N', str(standard_num), 1)
-                index = span[1]
+                index += span[1]
         return time_func
