@@ -104,11 +104,14 @@ class TimeParser:
 
     def _handle_one_pattern(self, item: TimeItem, time_str: str):
         pattern = self._get_pattern(item.pattern)
-        match_obj = re.match(pattern, time_str)
+        match_obj = re.search(pattern, time_str)
         if match_obj:
             match_str = match_obj.group()
             value_str = item.value
-            return self._get_time(match_str, value_str)
+            if value_str.startswith('time2time'):
+                return self.time2time(match_str)
+            else:
+                return self._get_time(match_str, value_str)
         else:
             return None
 
@@ -142,3 +145,36 @@ class TimeParser:
                 time_func = time_func.replace('N', str(standard_num), 1)
                 index += span[1]
         return time_func
+
+    def time2time(self, time_str: str):
+        """这个时间函数解决如下时间表述：
+        time (到|至|-) time的形式，要求time是如下一种形式：
+
+        time的形式要求是day类型的日期表述
+        """
+        item_list = self._time_map['day']
+        index = 0
+        ret_list = []
+        match_times = 0
+        for item in item_list:
+            if index < len(time_str) and match_times < 2:
+                pattern = self._get_pattern(item.pattern)
+            else:
+                break
+
+            while index < len(time_str) and match_times < 2:
+                match_obj = re.search(pattern, time_str[index:])
+                if match_obj:
+                    match_str = match_obj.group()
+                    value_str = item.value
+                    ret = self._get_time(match_str, value_str)
+                    if ret:
+                        match_times += 1
+                        ret_list.append(ret)
+                    index += match_obj.span()[1]
+                else:
+                    break
+        if len(ret_list) == 2:
+            return tuple(ret_list)
+        else:
+            return None

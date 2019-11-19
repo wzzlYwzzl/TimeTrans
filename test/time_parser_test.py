@@ -13,3 +13,6 @@ print(ret == '20191118')
 
 ret = time_parser.parse_time('今年','period')
 print(ret == ('20190101','20191118'))
+
+ret = time_parser.parse_time('20180904-20190809', 'period')
+print(ret == ('20180904','20190809'))

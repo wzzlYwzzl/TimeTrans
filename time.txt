@@ -65,6 +65,7 @@ N年((之|以)?)后	year_month_day(N,0,0,7)	day
 后年N月N日	year_month_day(2,N,N,4)	day
 
 # 区间日期相关配置
+N(-|至|到)N	time2time()	period
 N	n2time_period(N)	period
 N天(以?)内$近N天$(近?)N天以来$连续N天	period(-N,0,0)	period
 (最?近?)N个交易日	period(-N,0,1)	period
