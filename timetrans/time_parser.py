@@ -94,7 +94,7 @@ class TimeParser:
         
         # 不限制time_type
         if time_type == 'all':
-            for item_list in self._time_map.values:
+            for item_list in self._time_map.values():
                 for item in item_list:
                     ret = self._handle_one_pattern(item, time_str)
                     if ret:
