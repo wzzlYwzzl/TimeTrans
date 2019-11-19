@@ -4,13 +4,18 @@ class Number:
         self.length = length
         self.value = value
 
+
 # 初始化一些基本参数，包括中文基本数字0-9与单位
-chinese_num = {'零': 0, '一': 1, '二': 2, '两': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8, '九': 9}
+chinese_num = {'零': 0, '一': 1, '二': 2, '两': 2, '三': 3,
+               '四': 4, '五': 5, '六': 6, '七': 7, '八': 8, '九': 9}
 
 rules = {'亿': 100000000, '万': 10000, '千': 1000, '百': 100, '十': 10, '个': 1}
 
+float_point = set(['.','点'])
+
 # 日期识别中，这个正则表达式用于检测其中的N
 num_pattern = '[0123456789零一二三四五六七八九十百千万亿]+'
+
 
 def preprocess_data(num):
     """
@@ -50,7 +55,7 @@ def test_for_non_unit_num(num):
     base = 1
     for idx in reversed(range(len(num))):
         # 如果此下标对应的字是单位则返回0
-        if num[idx] in rules or num[idx:idx + 2] in rules:
+        if num[idx] in rules or num[idx:idx + 2] in rules or num[idx] in float_point:
             return 0
         if num[idx].isdigit():
             en_num = en_num + int(num[idx]) * base
@@ -129,6 +134,16 @@ def get_value(num):
     # 对个位数以及单个’十‘和首个字是’十‘的形式进行单独处理
     size = find_size(num)
     if size[0] == '个':
+        if len(num) > 1:  # 处理小数数字，或者是连续的大写数字。一点一三，1.13
+            ch_list = [str(chinese_num[tet])
+                       if tet in chinese_num else tet for tet in num]
+            new_num = ''.join(ch_list)
+            if is_float(new_num):
+                new_num = new_num.replace('点','.')
+                return float(new_num)
+            else:
+                return int(new_num)
+
         if num[0] in chinese_num:
             return chinese_num[num[0]]
         else:
@@ -138,6 +153,8 @@ def get_value(num):
     else:
         if num[0] == '十':
             num = '一' + num
+        if num[0:2] == '零十':
+            num = '一' + num[1:]
         nums = num.split(size[0])
 
         if len(nums[1]) == 1:
@@ -151,16 +168,35 @@ def cn_num_translate(num):
     计算中文数字（包括混合形式）的值
     :param num:
     :return:
+
+    注意：这里不支持浮点数
     """
+    negative = 1
+    if num[0] == '-' or num[0] == '负':
+        negative = -1
+        num = num[1:]
+    elif num[0] == '+' or num[0] == '正':
+        num = num[1:]
+
     value = test_for_non_unit_num(num)
     if value > 0:
         return value
 
     # 首先用“零”对句子进行切割
-    nums = num.split('零')
-    for sub_num in nums:
-        value = value + get_value(sub_num)
-    return value
+    #nums = num.split('零')
+    #for sub_num in nums:
+    #    value = value + get_value(sub_num)
+    value = get_value(num)
+    return value * negative
+
+
+def is_float(num: str):
+    """判断num字符串是否是小数。判断方法就是
+    是否包含“.”和“点”。
+    """
+    if '.' in num or '点' in num:
+        return True
+    return False
 
 
 def process_sentence(line):
@@ -184,7 +220,9 @@ def process_sentence(line):
             process_num = preprocess_data(num)
             # 检测“三十三百”这种情况
             nums = test_multiple_nums(process_num)
-            nums_inf = nums_inf + [(sub_num, i - (len(num) - process_num.find(sub_num)) + 1) for sub_num in nums]
+            nums_inf = nums_inf + \
+                [(sub_num, i - (len(num) - process_num.find(sub_num)) + 1)
+                 for sub_num in nums]
             num = ''
             # nums_inf.append((preprocess_data(num), i - len(num) + 1))
 
