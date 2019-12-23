@@ -1,3 +1,6 @@
+import re
+
+
 class Number:
     def __init__(self, offset, length, value):
         self.offset = offset
@@ -6,17 +9,20 @@ class Number:
 
 
 # 初始化一些基本参数，包括中文基本数字0-9与单位
-chinese_num = {'零': 0, '一': 1, '壹':1, '二': 2, '贰': 2, '两': 2, '三': 3,
-               '叁': 3, '四': 4, '肆': 4, '五': 5, '伍': 5, '六': 6, '陆': 6, 
+chinese_num = {'零': 0, '一': 1, '壹': 1, '二': 2, '贰': 2, '两': 2, '三': 3,
+               '叁': 3, '四': 4, '肆': 4, '五': 5, '伍': 5, '六': 6, '陆': 6,
                '七': 7, '柒': 7, '八': 8, '捌': 8, '九': 9, '玖': 9}
 
-rules = {'亿': 100000000, '万': 10000, '千': 1000, '仟': 1000, '百': 100, 
-         '佰': 100, '十': 10, '拾': 10, '个': 1}
+rules = {'亿': 100000000, '万': 10000, '千': 1000, '仟': 1000, '百': 100,
+         '佰': 100, '十': 10, '拾': 10, '个': 1, '%': 0.01, '‰': 0.001}
 
-float_point = set(['.','点'])
+float_point = set(['.', '点'])
 
 # 日期识别中，这个正则表达式用于检测其中的N
-num_pattern = '[0123456789零一二三四五六七八九十百千万亿]+'
+num_pattern = r'[0123456789零一二三四五六七八九十百千万亿壹贰叁肆伍陆柒捌玖]+'
+
+# num分之num
+parts_num = re.compile(r'[正|负|-|+]?' + num_pattern + r'分之' + num_pattern)
 
 
 def preprocess_data(num):
@@ -141,7 +147,7 @@ def get_value(num):
                        if tet in chinese_num else tet for tet in num]
             new_num = ''.join(ch_list)
             if is_float(new_num):
-                new_num = new_num.replace('点','.')
+                new_num = new_num.replace('点', '.')
                 return float(new_num)
             else:
                 return int(new_num)
@@ -162,7 +168,11 @@ def get_value(num):
         if len(nums[1]) == 1:
             return get_value(nums[0]) * size[1] + get_value(nums[1]) * int(size[1] / 10)
         else:
-            return get_value(nums[0]) * size[1] + get_value(nums[1])
+            if not nums[0]:
+                # 这里是为了让百、千、万等size词，如果单独出现翻译成1*size
+                return 1 * size[1] + get_value(nums[1])
+            else:
+                return get_value(nums[0]) * size[1] + get_value(nums[1])
 
 
 def cn_num_translate(num):
@@ -180,14 +190,18 @@ def cn_num_translate(num):
     elif num[0] == '+' or num[0] == '正':
         num = num[1:]
 
+    if '分之' in num:
+        parts = num.split('分之')
+        if len(parts) == 2:
+            part_0 = get_value(parts[0])
+            part_1 = get_value(parts[1])
+            if part_0 != 0:
+                return part_1 / part_0
+
     value = test_for_non_unit_num(num)
     if value > 0:
         return value
 
-    # 首先用“零”对句子进行切割
-    #nums = num.split('零')
-    #for sub_num in nums:
-    #    value = value + get_value(sub_num)
     value = get_value(num)
     return value * negative
 
@@ -209,6 +223,11 @@ def process_sentence(line):
     """
     nums_inf = []
     num = ''
+
+    # 优先检测其中存在的"num分之num"格式的数字
+    line,parts_nums = process_parts_num(line)
+    nums_inf += parts_nums
+
     i = 0
     while i < len(line):
         # 如果i小于句子长度并且当前的字是单位或者数字或者逗号便进入循环
@@ -231,6 +250,28 @@ def process_sentence(line):
         i = i + 1
 
     return nums_inf
+
+
+def process_parts_num(line: str):
+    """从句子中检测出num分之num的数字。
+
+    返回：list，注意tuple中存储的内容：
+    (word, offset)，word就是一个“num分之num”的字符串，offset就是
+    字符串的起始索引位置。
+    """
+    ret = []
+    new_line = line  # 过滤已识别的字符串之后line
+
+    global parts_num
+    matches = parts_num.finditer(line)
+    for match in matches:
+        word = match.group()
+        position = match.span()
+        new_line = line[:position[0]] + '#' * \
+            (position[1] - position[0]) + line[position[1]:]
+        ret.append((word, position[0]))
+
+    return new_line, ret
 
 
 def sentence_num_translate(sentence):

@@ -73,7 +73,7 @@ N周((内|以来)?)$近N周$过去N周$连续N周	period(-N,1,0)	period
 本周	period(0,1,1)	period
 上周	period(-1,1,3)	period
 (最?)近半(个?)月	period(-15,0,0)	period
-(最近)?N(个?)月(来|内)$连续N(个?)月$近N(个?)月	period(2,N,0)	period
+(最近)?N(个?)月(来|内)$连续N(个?)月$近N(个?)月	period(-N,2,0)	period
 (本|当)月(内?)$这个月	period(0,2,1)	period
 上(个?)月	period(-1,2,3)	period
 下(个?)月	period(1,2,3)	period
@@ -141,4 +141,4 @@ N年年报	report_date(N,4,0)	report
 去年N季((报|度)?)	report_date(-1,N,1)	report
 今年N季((报|度)?)$N季报	report_date(0,N,1)	report
 明年N季((报|度)?)	report_date(1,N,1)	report
-((最?)近|前|连续))N年	ignore()	report
+((最?)近|前|连续)N年	ignore()	report

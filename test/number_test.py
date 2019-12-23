@@ -2,7 +2,9 @@ import sys
 
 sys.path.append('/Users/caoxiaojie/pythonCode/TimeTrans')
 
-from timetrans.number.num_utils import cn_num_translate
+from timetrans.number.num_utils import cn_num_translate, sentence_num_translate
+
+
 
 
 ret = cn_num_translate('-12亿')
@@ -55,3 +57,11 @@ ret = cn_num_translate('一零一')
 print(24, ret == 101)
 ret = cn_num_translate('123.456')
 print(25, ret == 123.456)
+
+ret = cn_num_translate('四分之3')
+print(26, ret == 0.75)
+
+test = "总市值增长了百分之78"
+ret = sentence_num_translate(test)
+for num in ret:
+    print(num.value, num.offset)
